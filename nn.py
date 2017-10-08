@@ -102,7 +102,7 @@ class NN():
             # Randomly initialize weights using uniform distribution in the
             # range [-0.5, 0.5]
             layer_weights = np.random.rand(previous_layer_neurons,
-                                            current_layer_neurons) - 0.5
+                                           current_layer_neurons) - 0.5
 
             # Store layer weights
             self.weights.append(layer_weights)
@@ -122,12 +122,11 @@ class NN():
         """
         # Set layer_activation to x initially
         layer_activation = x
-        for layer in range(1, self.number_of_layers):
-            layer_index = layer - 1
+        for layer in range(0, self.number_of_layers - 1):
 
             # Obtain weights and biases
-            weights = self.weights[layer_index]
-            biases = self.biases[layer_index]
+            weights = self.weights[layer]
+            biases = self.biases[layer]
 
             # Assuming layer_activation is a row vector with dimension 1*m
             # Perform matrix multiplication and add bias
@@ -168,17 +167,16 @@ class NN():
                 activations = [input_sample.reshape(1, len(input_sample))]
 
                 # Feed forward through the layers
-                for layer in range(1, self.number_of_layers):
-                    layer_index = layer - 1
+                for layer in range(0, self.number_of_layers - 1):
 
                     # Obtain weights and biases
-                    weights = self.weights[layer_index]
-                    biases = self.biases[layer_index]
+                    weights = self.weights[layer]
+                    biases = self.biases[layer]
 
                     # Assuming layer_activation is a row vector with dimension
                     # 1*m
                     # Perform matrix multiplication and add bias
-                    z = np.dot(activations[layer_index], weights) + biases.T
+                    z = np.dot(activations[layer], weights) + biases.T
 
                     # Use the activation function
                     layer_activation = self.activation_function(z)
@@ -207,25 +205,22 @@ class NN():
                     (self.biases[-1] - previous_biases[-1])
 
                 # Backpropagate delta through layers
-                for layer in range(self.number_of_layers - 2, 0, -1):
+                for layer in range(self.number_of_layers - 3, -1, -1):
 
-                    layer_index = layer - 1
+                    next_layer_activation = activations[layer + 1].T
 
-                    layer_activation = activations[layer_index + 1].T
+                    delta = np.dot(self.weights[
+                        layer
+                        + 1], delta) * self.activation_function_derivative(
+                            next_layer_activation)
 
-                    delta = np.dot(
-                        self.weights[layer_index + 1], delta
-                    ) * self.activation_function_derivative(layer_activation)
-
-                    self.weights[layer_index] += self.learning_rate * np.dot(
-                        activations[layer_index].T,
+                    self.weights[layer] += self.learning_rate * np.dot(
+                        activations[layer].T,
                         delta.T) + self.momentum_coefficient * (
-                            self.weights[layer_index] -
-                            previous_weights[layer_index])
+                            self.weights[layer] - previous_weights[layer])
                     self.biases[
-                        layer_index] += self.learning_rate * delta + self.momentum_coefficient * (
-                            self.biases[layer_index] -
-                            previous_biases[layer_index])
+                        layer] += self.learning_rate * delta + self.momentum_coefficient * (
+                            self.biases[layer] - previous_biases[layer])
 
                 # Store weights
                 self.backup_weights()
